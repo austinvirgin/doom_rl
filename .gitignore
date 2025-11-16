@@ -1,0 +1,9 @@
+﻿# Python / VizDoom project ignores
+vizdoom312/
+ckpts/
+train/
+
+# large artifacts
+*.zip
+*.pyd
+*.dll

@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>learn_vizdoom</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="learn_vizdoom_files/libs/clipboard/clipboard.min.js"></script>
+<script src="learn_vizdoom_files/libs/quarto-html/quarto.js"></script>
+<script src="learn_vizdoom_files/libs/quarto-html/popper.min.js"></script>
+<script src="learn_vizdoom_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="learn_vizdoom_files/libs/quarto-html/anchor.min.js"></script>
+<link href="learn_vizdoom_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="learn_vizdoom_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="learn_vizdoom_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="learn_vizdoom_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="learn_vizdoom_files/libs/bootstrap/bootstrap-8a79a254b8e706d3c925cde0a310d4f0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+
+
+
+<div id="92aa4001" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> vizdoom <span class="im">import</span> DoomGame</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> random</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> gymnasium <span class="im">import</span> Env</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> gymnasium.spaces <span class="im">import</span> Discrete, Box</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cv2</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> matplotlib <span class="im">import</span> pyplot <span class="im">as</span> plot</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> stable_baselines3.common <span class="im">import</span> env_checker</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> stable_baselines3.common.callbacks <span class="im">import</span> BaseCallback</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> stable_baselines3 <span class="im">import</span> PPO</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="5aa0edcd" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> VizDoomGym(Env):</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Initalizing function</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, render<span class="op">=</span><span class="va">False</span>):</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game <span class="op">=</span> DoomGame()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game.load_config(<span class="st">'ViZDoom/scenarios/basic.cfg'</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Render frame logic</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game.set_window_visible(render)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game.init()</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.observation_space <span class="op">=</span> Box(low <span class="op">=</span> <span class="dv">0</span>, high <span class="op">=</span> <span class="dv">255</span>, shape <span class="op">=</span> (<span class="dv">100</span>, <span class="dv">160</span>, <span class="dv">1</span>), dtype<span class="op">=</span>np.uint8)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.action_space <span class="op">=</span> Discrete(<span class="dv">3</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># What is done when taking a step</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> step(<span class="va">self</span>, action):</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Specify action then take step</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>        actions <span class="op">=</span> np.identity(<span class="dv">3</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>        reward <span class="op">=</span> <span class="va">self</span>.game.make_action(actions[action], <span class="dv">4</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="va">self</span>.game.get_state():</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>            state <span class="op">=</span> <span class="va">self</span>.game.get_state()</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>            img <span class="op">=</span> state.screen_buffer</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>            img <span class="op">=</span> <span class="va">self</span>.grayscale(img)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>            ammo <span class="op">=</span> state.game_variables[<span class="dv">0</span>]</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>            info <span class="op">=</span> {<span class="st">'ammo'</span>: ammo}</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>            img <span class="op">=</span> np.zeros(<span class="va">self</span>.observation_space.shape)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>            info <span class="op">=</span> {}</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        done <span class="op">=</span> <span class="va">self</span>.game.is_episode_finished()</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        <span class="co">#obs, reward, terminated, truncated, info</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> img, reward, done, <span class="va">False</span>, info</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Define how to render the game or environment</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> render():</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>    <span class="co"># What happens when a new game is started</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> reset(<span class="va">self</span>, seed <span class="op">=</span> <span class="va">None</span>, options <span class="op">=</span> <span class="va">None</span>):</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().reset(seed<span class="op">=</span>seed)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game.new_episode()</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>        info <span class="op">=</span> {}</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.grayscale(<span class="va">self</span>.game.get_state().screen_buffer), info</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Grayscale the game frame and resize it</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> grayscale(<span class="va">self</span>, observation):</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>        gray <span class="op">=</span> cv2.cvtColor(np.moveaxis(observation, <span class="dv">0</span>, <span class="op">-</span><span class="dv">1</span>), cv2.COLOR_BGR2GRAY)</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>        resize <span class="op">=</span> cv2.resize(gray, (<span class="dv">160</span>, <span class="dv">100</span>), interpolation<span class="op">=</span>cv2.INTER_CUBIC)</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>        state <span class="op">=</span> np.reshape(resize, (<span class="dv">100</span>, <span class="dv">160</span>, <span class="dv">1</span>))</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> state</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Will be called to close the game</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> close(<span class="va">self</span>):</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.game.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="74182171" class="cell" data-execution_count="50">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> VizDoomGym()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="5c2d8bd7" class="cell" data-execution_count="51">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>state <span class="op">=</span> env.reset()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="317fead8" class="cell" data-execution_count="52">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>state</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="52">
+<pre><code>(array([[[55],
+         [50],
+         [59],
+         ...,
+         [57],
+         [57],
+         [66]],
+ 
+        [[68],
+         [65],
+         [65],
+         ...,
+         [56],
+         [67],
+         [72]],
+ 
+        [[49],
+         [79],
+         [66],
+         ...,
+         [79],
+         [51],
+         [29]],
+ 
+        ...,
+ 
+        [[75],
+         [63],
+         [62],
+         ...,
+         [44],
+         [71],
+         [60]],
+ 
+        [[15],
+         [48],
+         [47],
+         ...,
+         [49],
+         [69],
+         [47]],
+ 
+        [[22],
+         [14],
+         [26],
+         ...,
+         [57],
+         [37],
+         [39]]], shape=(100, 160, 1), dtype=uint8),
+ {})</code></pre>
+</div>
+</div>
+<div id="203beb72" class="cell" data-execution_count="53">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>plot.imshow(state[<span class="dv">0</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="learn_vizdoom_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<div id="680d109f" class="cell" data-execution_count="54">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># from stable_baselines3.common import env_checker</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="1429abfc" class="cell" data-execution_count="55">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>env_checker.check_env(env)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="afe2163b" class="cell" data-execution_count="56">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>env.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Setup Callback</p>
+<div id="544878f9" class="cell" data-scrolled="true" data-execution_count="57">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># !pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="7d3d141e-ed5c-4ae2-97be-0d7b7868c929" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TrainAndLoggingCallback(BaseCallback):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, check_freq, save_path, verbose <span class="op">=</span> <span class="dv">1</span>):</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(TrainAndLoggingCallback, <span class="va">self</span>).<span class="fu">__init__</span>(verbose)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.check_freq <span class="op">=</span> check_freq</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.save_path <span class="op">=</span> save_path</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _init_callback(<span class="va">self</span>):</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="va">self</span>.save_path <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>            os.makedirs(<span class="va">self</span>.save_path, exist_ok <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> _on_step(<span class="va">self</span>):</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="va">self</span>.n_calls <span class="op">%</span> <span class="va">self</span>.check_freq <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>            model_path <span class="op">=</span> os.path.join(<span class="va">self</span>.save_path, <span class="st">'best_model_</span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(<span class="va">self</span>.n_calls))</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.model.save(model_path)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">True</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="66c878fd" class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>CHECKPOINT_DIR <span class="op">=</span> <span class="st">'./train/train_basic'</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>LOG_DIR <span class="op">=</span> <span class="st">'logs/log_basic'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="6c061481-5679-48ca-9157-5a5df08466bc" class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>callback <span class="op">=</span> TrainAndLoggingCallback(check_freq <span class="op">=</span> <span class="dv">10_000</span>, save_path <span class="op">=</span> CHECKPOINT_DIR)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="9fce2ae8" class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>env <span class="op">=</span> VizDoomGym()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="28ba9375" class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> PPO(<span class="st">'CnnPolicy'</span>, env, tensorboard_log <span class="op">=</span> LOG_DIR, verbose <span class="op">=</span> <span class="dv">1</span>, learning_rate <span class="op">=</span> <span class="fl">0.0001</span>, n_steps <span class="op">=</span> <span class="dv">2048</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Using cpu device
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Wrapping the env with a `Monitor` wrapper
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Wrapping the env in a DummyVecEnv.
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Wrapping the env in a VecTransposeImage.
+</pre>
+</div>
+</div>
+<div id="124b3287" class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>model.learn(total_timesteps<span class="op">=</span><span class="dv">100_000</span>, callback<span class="op">=</span>callback)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">Logging to logs/log_basic\PPO_5
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">---------------------------------
+| rollout/           |          |
+|    ep_len_mean     | 37.3     |
+|    ep_rew_mean     | -112     |
+| time/              |          |
+|    fps             | 27       |
+|    iterations      | 1        |
+|    time_elapsed    | 73       |
+|    total_timesteps | 2048     |
+---------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 36.6        |
+|    ep_rew_mean          | -107        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 2           |
+|    time_elapsed         | 237         |
+|    total_timesteps      | 4096        |
+| train/                  |             |
+|    approx_kl            | 0.008031827 |
+|    clip_fraction        | 0.159       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1.09       |
+|    explained_variance   | 0.0002      |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.11e+03    |
+|    n_updates            | 10          |
+|    policy_gradient_loss | 0.00285     |
+|    value_loss           | 2.25e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 33.7        |
+|    ep_rew_mean          | -86.2       |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 3           |
+|    time_elapsed         | 359         |
+|    total_timesteps      | 6144        |
+| train/                  |             |
+|    approx_kl            | 0.006198804 |
+|    clip_fraction        | 0.116       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1.07       |
+|    explained_variance   | 0.0434      |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.2e+03     |
+|    n_updates            | 20          |
+|    policy_gradient_loss | 0.00325     |
+|    value_loss           | 3.57e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">------------------------------------------
+| rollout/                |              |
+|    ep_len_mean          | 25.4         |
+|    ep_rew_mean          | -33.2        |
+| time/                   |              |
+|    fps                  | 16           |
+|    iterations           | 4            |
+|    time_elapsed         | 489          |
+|    total_timesteps      | 8192         |
+| train/                  |              |
+|    approx_kl            | 0.0069106985 |
+|    clip_fraction        | 0.141        |
+|    clip_range           | 0.2          |
+|    entropy_loss         | -1.07        |
+|    explained_variance   | 0.207        |
+|    learning_rate        | 0.0001       |
+|    loss                 | 1.02e+03     |
+|    n_updates            | 30           |
+|    policy_gradient_loss | 0.00134      |
+|    value_loss           | 3.02e+03     |
+------------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 21.5        |
+|    ep_rew_mean          | -19.2       |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 5           |
+|    time_elapsed         | 599         |
+|    total_timesteps      | 10240       |
+| train/                  |             |
+|    approx_kl            | 0.015898582 |
+|    clip_fraction        | 0.253       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1.08       |
+|    explained_variance   | 0.477       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.79e+03    |
+|    n_updates            | 40          |
+|    policy_gradient_loss | 0.00279     |
+|    value_loss           | 3.94e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 17.9        |
+|    ep_rew_mean          | 11.6        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 6           |
+|    time_elapsed         | 705         |
+|    total_timesteps      | 12288       |
+| train/                  |             |
+|    approx_kl            | 0.016505005 |
+|    clip_fraction        | 0.306       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1.06       |
+|    explained_variance   | 0.509       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.66e+03    |
+|    n_updates            | 50          |
+|    policy_gradient_loss | 0.00276     |
+|    value_loss           | 3.78e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">------------------------------------------
+| rollout/                |              |
+|    ep_len_mean          | 22.8         |
+|    ep_rew_mean          | -25.4        |
+| time/                   |              |
+|    fps                  | 17           |
+|    iterations           | 7            |
+|    time_elapsed         | 811          |
+|    total_timesteps      | 14336        |
+| train/                  |              |
+|    approx_kl            | 0.0100419335 |
+|    clip_fraction        | 0.27         |
+|    clip_range           | 0.2          |
+|    entropy_loss         | -1.06        |
+|    explained_variance   | 0.547        |
+|    learning_rate        | 0.0001       |
+|    loss                 | 2.33e+03     |
+|    n_updates            | 60           |
+|    policy_gradient_loss | 0.00814      |
+|    value_loss           | 4.06e+03     |
+------------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 21          |
+|    ep_rew_mean          | -15.1       |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 8           |
+|    time_elapsed         | 933         |
+|    total_timesteps      | 16384       |
+| train/                  |             |
+|    approx_kl            | 0.011931584 |
+|    clip_fraction        | 0.259       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1.04       |
+|    explained_variance   | 0.442       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.96e+03    |
+|    n_updates            | 70          |
+|    policy_gradient_loss | 0.00551     |
+|    value_loss           | 3.76e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 22.2        |
+|    ep_rew_mean          | -24         |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 9           |
+|    time_elapsed         | 1065        |
+|    total_timesteps      | 18432       |
+| train/                  |             |
+|    approx_kl            | 0.021190133 |
+|    clip_fraction        | 0.321       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -1          |
+|    explained_variance   | 0.662       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.17e+03    |
+|    n_updates            | 80          |
+|    policy_gradient_loss | 0.00839     |
+|    value_loss           | 2.66e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 19.6        |
+|    ep_rew_mean          | -7.35       |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 10          |
+|    time_elapsed         | 1171        |
+|    total_timesteps      | 20480       |
+| train/                  |             |
+|    approx_kl            | 0.019842878 |
+|    clip_fraction        | 0.283       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.996      |
+|    explained_variance   | 0.616       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.87e+03    |
+|    n_updates            | 90          |
+|    policy_gradient_loss | 0.000487    |
+|    value_loss           | 3.39e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 13.6        |
+|    ep_rew_mean          | 30.1        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 11          |
+|    time_elapsed         | 1277        |
+|    total_timesteps      | 22528       |
+| train/                  |             |
+|    approx_kl            | 0.016900375 |
+|    clip_fraction        | 0.281       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.955      |
+|    explained_variance   | 0.732       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.17e+03    |
+|    n_updates            | 100         |
+|    policy_gradient_loss | 0.0051      |
+|    value_loss           | 2.52e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 13.7        |
+|    ep_rew_mean          | 32          |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 12          |
+|    time_elapsed         | 1385        |
+|    total_timesteps      | 24576       |
+| train/                  |             |
+|    approx_kl            | 0.019097328 |
+|    clip_fraction        | 0.253       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.947      |
+|    explained_variance   | 0.7         |
+|    learning_rate        | 0.0001      |
+|    loss                 | 968         |
+|    n_updates            | 110         |
+|    policy_gradient_loss | 0.00474     |
+|    value_loss           | 2.91e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 12.7       |
+|    ep_rew_mean          | 36.8       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 13         |
+|    time_elapsed         | 1500       |
+|    total_timesteps      | 26624      |
+| train/                  |            |
+|    approx_kl            | 0.03129419 |
+|    clip_fraction        | 0.345      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.924     |
+|    explained_variance   | 0.703      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 1.84e+03   |
+|    n_updates            | 120        |
+|    policy_gradient_loss | 0.0032     |
+|    value_loss           | 3.61e+03   |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 15.4       |
+|    ep_rew_mean          | 24.2       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 14         |
+|    time_elapsed         | 1620       |
+|    total_timesteps      | 28672      |
+| train/                  |            |
+|    approx_kl            | 0.01563338 |
+|    clip_fraction        | 0.219      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.879     |
+|    explained_variance   | 0.755      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 1.26e+03   |
+|    n_updates            | 130        |
+|    policy_gradient_loss | -0.0113    |
+|    value_loss           | 2.85e+03   |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 8.98        |
+|    ep_rew_mean          | 59.6        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 15          |
+|    time_elapsed         | 1734        |
+|    total_timesteps      | 30720       |
+| train/                  |             |
+|    approx_kl            | 0.026586147 |
+|    clip_fraction        | 0.295       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.852      |
+|    explained_variance   | 0.702       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.53e+03    |
+|    n_updates            | 140         |
+|    policy_gradient_loss | -0.00597    |
+|    value_loss           | 3.25e+03    |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 6.7         |
+|    ep_rew_mean          | 72.5        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 16          |
+|    time_elapsed         | 1851        |
+|    total_timesteps      | 32768       |
+| train/                  |             |
+|    approx_kl            | 0.024034875 |
+|    clip_fraction        | 0.297       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.777      |
+|    explained_variance   | 0.749       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 1.16e+03    |
+|    n_updates            | 150         |
+|    policy_gradient_loss | 0.000742    |
+|    value_loss           | 2e+03       |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 5.11       |
+|    ep_rew_mean          | 80.6       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 17         |
+|    time_elapsed         | 1978       |
+|    total_timesteps      | 34816      |
+| train/                  |            |
+|    approx_kl            | 0.03660737 |
+|    clip_fraction        | 0.274      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.712     |
+|    explained_variance   | 0.544      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 373        |
+|    n_updates            | 160        |
+|    policy_gradient_loss | 0.000444   |
+|    value_loss           | 962        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 6.08       |
+|    ep_rew_mean          | 75         |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 18         |
+|    time_elapsed         | 2108       |
+|    total_timesteps      | 36864      |
+| train/                  |            |
+|    approx_kl            | 0.04202467 |
+|    clip_fraction        | 0.324      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.62      |
+|    explained_variance   | 0.361      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 248        |
+|    n_updates            | 170        |
+|    policy_gradient_loss | 0.047      |
+|    value_loss           | 570        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.33       |
+|    ep_rew_mean          | 84.5       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 19         |
+|    time_elapsed         | 2232       |
+|    total_timesteps      | 38912      |
+| train/                  |            |
+|    approx_kl            | 0.06758332 |
+|    clip_fraction        | 0.284      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.5       |
+|    explained_variance   | 0.747      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 278        |
+|    n_updates            | 180        |
+|    policy_gradient_loss | 0.0185     |
+|    value_loss           | 677        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.43        |
+|    ep_rew_mean          | 84.1        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 20          |
+|    time_elapsed         | 2356        |
+|    total_timesteps      | 40960       |
+| train/                  |             |
+|    approx_kl            | 0.035400808 |
+|    clip_fraction        | 0.171       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.328      |
+|    explained_variance   | 0.276       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 65.7        |
+|    n_updates            | 190         |
+|    policy_gradient_loss | 0.0256      |
+|    value_loss           | 199         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.3         |
+|    ep_rew_mean          | 84.4        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 21          |
+|    time_elapsed         | 2480        |
+|    total_timesteps      | 43008       |
+| train/                  |             |
+|    approx_kl            | 0.025659787 |
+|    clip_fraction        | 0.165       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.271      |
+|    explained_variance   | 0.432       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 170         |
+|    n_updates            | 200         |
+|    policy_gradient_loss | 0.0163      |
+|    value_loss           | 305         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.57        |
+|    ep_rew_mean          | 82.8        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 22          |
+|    time_elapsed         | 2602        |
+|    total_timesteps      | 45056       |
+| train/                  |             |
+|    approx_kl            | 0.039888382 |
+|    clip_fraction        | 0.182       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.289      |
+|    explained_variance   | 0.631       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 238         |
+|    n_updates            | 210         |
+|    policy_gradient_loss | 0.00922     |
+|    value_loss           | 568         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.08       |
+|    ep_rew_mean          | 85.8       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 23         |
+|    time_elapsed         | 2735       |
+|    total_timesteps      | 47104      |
+| train/                  |            |
+|    approx_kl            | 0.06452452 |
+|    clip_fraction        | 0.135      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.221     |
+|    explained_variance   | 0.743      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 103        |
+|    n_updates            | 220        |
+|    policy_gradient_loss | 0.0105     |
+|    value_loss           | 295        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.91        |
+|    ep_rew_mean          | 87.1        |
+| time/                   |             |
+|    fps                  | 17          |
+|    iterations           | 24          |
+|    time_elapsed         | 2875        |
+|    total_timesteps      | 49152       |
+| train/                  |             |
+|    approx_kl            | 0.051547267 |
+|    clip_fraction        | 0.114       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.268      |
+|    explained_variance   | 0.424       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 64.2        |
+|    n_updates            | 230         |
+|    policy_gradient_loss | 0.0182      |
+|    value_loss           | 119         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.43       |
+|    ep_rew_mean          | 83.2       |
+| time/                   |            |
+|    fps                  | 17         |
+|    iterations           | 25         |
+|    time_elapsed         | 3004       |
+|    total_timesteps      | 51200      |
+| train/                  |            |
+|    approx_kl            | 0.09885045 |
+|    clip_fraction        | 0.194      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.294     |
+|    explained_variance   | 0.463      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 85.2       |
+|    n_updates            | 240        |
+|    policy_gradient_loss | 0.0444     |
+|    value_loss           | 92.5       |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.07       |
+|    ep_rew_mean          | 85.5       |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 26         |
+|    time_elapsed         | 3145       |
+|    total_timesteps      | 53248      |
+| train/                  |            |
+|    approx_kl            | 0.04427678 |
+|    clip_fraction        | 0.137      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.171     |
+|    explained_variance   | 0.525      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 51.1       |
+|    n_updates            | 250        |
+|    policy_gradient_loss | -0.00718   |
+|    value_loss           | 134        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.59        |
+|    ep_rew_mean          | 82.9        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 27          |
+|    time_elapsed         | 3283        |
+|    total_timesteps      | 55296       |
+| train/                  |             |
+|    approx_kl            | 0.080336615 |
+|    clip_fraction        | 0.146       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.144      |
+|    explained_variance   | 0.568       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 145         |
+|    n_updates            | 260         |
+|    policy_gradient_loss | 0.00436     |
+|    value_loss           | 187         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 7.2        |
+|    ep_rew_mean          | 66.7       |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 28         |
+|    time_elapsed         | 3403       |
+|    total_timesteps      | 57344      |
+| train/                  |            |
+|    approx_kl            | 0.05472456 |
+|    clip_fraction        | 0.145      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.202     |
+|    explained_variance   | 0.463      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 71.3       |
+|    n_updates            | 270        |
+|    policy_gradient_loss | -0.0203    |
+|    value_loss           | 136        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.11        |
+|    ep_rew_mean          | 85.9        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 29          |
+|    time_elapsed         | 3536        |
+|    total_timesteps      | 59392       |
+| train/                  |             |
+|    approx_kl            | 0.046149664 |
+|    clip_fraction        | 0.258       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.386      |
+|    explained_variance   | 0.662       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 211         |
+|    n_updates            | 280         |
+|    policy_gradient_loss | 0.0296      |
+|    value_loss           | 526         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.07       |
+|    ep_rew_mean          | 86.3       |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 30         |
+|    time_elapsed         | 3671       |
+|    total_timesteps      | 61440      |
+| train/                  |            |
+|    approx_kl            | 0.07385181 |
+|    clip_fraction        | 0.224      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.31      |
+|    explained_variance   | 0.867      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 276        |
+|    n_updates            | 290        |
+|    policy_gradient_loss | 0.0387     |
+|    value_loss           | 547        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.13       |
+|    ep_rew_mean          | 85.7       |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 31         |
+|    time_elapsed         | 3798       |
+|    total_timesteps      | 63488      |
+| train/                  |            |
+|    approx_kl            | 0.04409369 |
+|    clip_fraction        | 0.162      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.216     |
+|    explained_variance   | 0.898      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 168        |
+|    n_updates            | 300        |
+|    policy_gradient_loss | 0.0411     |
+|    value_loss           | 461        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.55       |
+|    ep_rew_mean          | 84.4       |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 32         |
+|    time_elapsed         | 3923       |
+|    total_timesteps      | 65536      |
+| train/                  |            |
+|    approx_kl            | 0.07615723 |
+|    clip_fraction        | 0.104      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.177     |
+|    explained_variance   | 0.367      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 57.3       |
+|    n_updates            | 310        |
+|    policy_gradient_loss | 0.000813   |
+|    value_loss           | 97.8       |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.86        |
+|    ep_rew_mean          | 87.3        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 33          |
+|    time_elapsed         | 4062        |
+|    total_timesteps      | 67584       |
+| train/                  |             |
+|    approx_kl            | 0.059634015 |
+|    clip_fraction        | 0.275       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.23       |
+|    explained_variance   | 0.482       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 19.6        |
+|    n_updates            | 320         |
+|    policy_gradient_loss | 0.0381      |
+|    value_loss           | 114         |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.77        |
+|    ep_rew_mean          | 83.6        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 34          |
+|    time_elapsed         | 4208        |
+|    total_timesteps      | 69632       |
+| train/                  |             |
+|    approx_kl            | 0.023330137 |
+|    clip_fraction        | 0.134       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.204      |
+|    explained_variance   | 0.772       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 5.64        |
+|    n_updates            | 330         |
+|    policy_gradient_loss | 0.0358      |
+|    value_loss           | 30.2        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.93        |
+|    ep_rew_mean          | 80.7        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 35          |
+|    time_elapsed         | 4346        |
+|    total_timesteps      | 71680       |
+| train/                  |             |
+|    approx_kl            | 0.034856584 |
+|    clip_fraction        | 0.101       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.186      |
+|    explained_variance   | 0.621       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 49          |
+|    n_updates            | 340         |
+|    policy_gradient_loss | 0.00348     |
+|    value_loss           | 74.5        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 4.37       |
+|    ep_rew_mean          | 85         |
+| time/                   |            |
+|    fps                  | 16         |
+|    iterations           | 36         |
+|    time_elapsed         | 4483       |
+|    total_timesteps      | 73728      |
+| train/                  |            |
+|    approx_kl            | 0.03577419 |
+|    clip_fraction        | 0.128      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.176     |
+|    explained_variance   | 0.75       |
+|    learning_rate        | 0.0001     |
+|    loss                 | 32.9       |
+|    n_updates            | 350        |
+|    policy_gradient_loss | 0.00633    |
+|    value_loss           | 128        |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.81        |
+|    ep_rew_mean          | 87.1        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 37          |
+|    time_elapsed         | 4621        |
+|    total_timesteps      | 75776       |
+| train/                  |             |
+|    approx_kl            | 0.049503893 |
+|    clip_fraction        | 0.109       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.157      |
+|    explained_variance   | 0.424       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 14.2        |
+|    n_updates            | 360         |
+|    policy_gradient_loss | 0.0192      |
+|    value_loss           | 96.2        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.15        |
+|    ep_rew_mean          | 85.8        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 38          |
+|    time_elapsed         | 4760        |
+|    total_timesteps      | 77824       |
+| train/                  |             |
+|    approx_kl            | 0.013194643 |
+|    clip_fraction        | 0.0682      |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.113      |
+|    explained_variance   | 0.828       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 12.5        |
+|    n_updates            | 370         |
+|    policy_gradient_loss | 0.00964     |
+|    value_loss           | 25.3        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.75        |
+|    ep_rew_mean          | 87.6        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 39          |
+|    time_elapsed         | 4896        |
+|    total_timesteps      | 79872       |
+| train/                  |             |
+|    approx_kl            | 0.023040593 |
+|    clip_fraction        | 0.0402      |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.0898     |
+|    explained_variance   | 0.729       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 7.06        |
+|    n_updates            | 380         |
+|    policy_gradient_loss | 0.00501     |
+|    value_loss           | 44.5        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.43        |
+|    ep_rew_mean          | 84.8        |
+| time/                   |             |
+|    fps                  | 16          |
+|    iterations           | 40          |
+|    time_elapsed         | 5029        |
+|    total_timesteps      | 81920       |
+| train/                  |             |
+|    approx_kl            | 0.009048265 |
+|    clip_fraction        | 0.057       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.0741     |
+|    explained_variance   | 0.842       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 12.8        |
+|    n_updates            | 390         |
+|    policy_gradient_loss | 0.00985     |
+|    value_loss           | 25.5        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">------------------------------------------
+| rollout/                |              |
+|    ep_len_mean          | 3.84         |
+|    ep_rew_mean          | 87.4         |
+| time/                   |              |
+|    fps                  | 16           |
+|    iterations           | 41           |
+|    time_elapsed         | 5205         |
+|    total_timesteps      | 83968        |
+| train/                  |              |
+|    approx_kl            | 0.0072483975 |
+|    clip_fraction        | 0.043        |
+|    clip_range           | 0.2          |
+|    entropy_loss         | -0.092       |
+|    explained_variance   | 0.886        |
+|    learning_rate        | 0.0001       |
+|    loss                 | 7.94         |
+|    n_updates            | 400          |
+|    policy_gradient_loss | 0.00921      |
+|    value_loss           | 16.8         |
+------------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.88        |
+|    ep_rew_mean          | 87.4        |
+| time/                   |             |
+|    fps                  | 15          |
+|    iterations           | 42          |
+|    time_elapsed         | 5428        |
+|    total_timesteps      | 86016       |
+| train/                  |             |
+|    approx_kl            | 0.024217216 |
+|    clip_fraction        | 0.0489      |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.0853     |
+|    explained_variance   | 0.781       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 33          |
+|    n_updates            | 410         |
+|    policy_gradient_loss | 0.00352     |
+|    value_loss           | 32.3        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">---------------------------------------
+| rollout/                |           |
+|    ep_len_mean          | 3.91      |
+|    ep_rew_mean          | 87.3      |
+| time/                   |           |
+|    fps                  | 15        |
+|    iterations           | 43        |
+|    time_elapsed         | 5576      |
+|    total_timesteps      | 88064     |
+| train/                  |           |
+|    approx_kl            | 0.0317981 |
+|    clip_fraction        | 0.0597    |
+|    clip_range           | 0.2       |
+|    entropy_loss         | -0.0988   |
+|    explained_variance   | 0.874     |
+|    learning_rate        | 0.0001    |
+|    loss                 | 7.44      |
+|    n_updates            | 420       |
+|    policy_gradient_loss | 0.0255    |
+|    value_loss           | 16.6      |
+---------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 3.9         |
+|    ep_rew_mean          | 87.2        |
+| time/                   |             |
+|    fps                  | 15          |
+|    iterations           | 44          |
+|    time_elapsed         | 5721        |
+|    total_timesteps      | 90112       |
+| train/                  |             |
+|    approx_kl            | 0.009329056 |
+|    clip_fraction        | 0.056       |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.0793     |
+|    explained_variance   | 0.924       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 2.97        |
+|    n_updates            | 430         |
+|    policy_gradient_loss | 0.0124      |
+|    value_loss           | 9.34        |
+-----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">----------------------------------------
+| rollout/                |            |
+|    ep_len_mean          | 3.87       |
+|    ep_rew_mean          | 87.2       |
+| time/                   |            |
+|    fps                  | 15         |
+|    iterations           | 45         |
+|    time_elapsed         | 5849       |
+|    total_timesteps      | 92160      |
+| train/                  |            |
+|    approx_kl            | 0.07448046 |
+|    clip_fraction        | 0.069      |
+|    clip_range           | 0.2        |
+|    entropy_loss         | -0.0692    |
+|    explained_variance   | 0.586      |
+|    learning_rate        | 0.0001     |
+|    loss                 | 14.8       |
+|    n_updates            | 440        |
+|    policy_gradient_loss | 0.000335   |
+|    value_loss           | 66.9       |
+----------------------------------------
+</pre>
+</div>
+<div class="cell-output cell-output-display">
+<pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">-----------------------------------------
+| rollout/                |             |
+|    ep_len_mean          | 4.34        |
+|    ep_rew_mean          | 85.4        |
+| time/                   |             |
+|    fps                  | 15          |
+|    iterations           | 46          |
+|    time_elapsed         | 5988        |
+|    total_timesteps      | 94208       |
+| train/                  |             |
+|    approx_kl            | 0.024699772 |
+|    clip_fraction        | 0.0459      |
+|    clip_range           | 0.2         |
+|    entropy_loss         | -0.0655     |
+|    explained_variance   | 0.718       |
+|    learning_rate        | 0.0001      |
+|    loss                 | 27.4        |
+|    n_updates            | 450         |
+|    policy_gradient_loss | 0.0177      |
+|    value_loss           | 39          |
+-----------------------------------------
+</pre>
+</div>
+</div>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
